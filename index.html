@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IBM Cognos Dashboard | Jayasri K</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+:root{
+  --bg:#04080f;--teal:#5df5c8;--purple:#c084fc;--gold:#f5c842;--blue:#60a5fa;
+  --white:#eef2ff;--muted:#6b7a99;--glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.09);
+}
+body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--white);overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:linear-gradient(var(--teal),var(--purple));}
+canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+nav{position:fixed;top:0;width:100%;z-index:100;padding:1rem 2.5rem;display:flex;justify-content:space-between;align-items:center;background:rgba(4,8,15,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--glass-b);}
+.nav-logo{font-family:"Cormorant Garamond",serif;font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--white),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+.nav-back{font-family:"Space Mono",monospace;font-size:0.75rem;color:var(--teal);text-decoration:none;border:1px solid rgba(93,245,200,0.3);padding:0.4rem 1rem;border-radius:4px;transition:all 0.2s;}
+.nav-back:hover{background:rgba(93,245,200,0.1);}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:6rem 2rem 3rem;position:relative;z-index:1;text-align:center;}
+.hero-tag{font-family:"Space Mono",monospace;font-size:0.72rem;color:var(--purple);letter-spacing:3px;margin-bottom:1rem;opacity:0;animation:up 0.7s forwards 0.3s;}
+.hero h1{font-family:"Cormorant Garamond",serif;font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;line-height:1;letter-spacing:-1px;margin-bottom:1rem;opacity:0;animation:up 0.8s forwards 0.5s;}
+.hero h1 span{background:linear-gradient(135deg,var(--purple),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:1rem;color:var(--muted);max-width:550px;margin:0 auto 2.5rem;line-height:1.8;opacity:0;animation:up 0.7s forwards 0.7s;}
+.hero-badges{display:flex;justify-content:center;gap:0.7rem;flex-wrap:wrap;margin-bottom:3rem;opacity:0;animation:up 0.7s forwards 0.9s;}
+.badge{padding:0.4rem 1rem;border-radius:20px;font-size:0.72rem;font-family:"Space Mono",monospace;border:1px solid;}
+.badge.t{color:var(--teal);border-color:rgba(93,245,200,0.25);background:rgba(93,245,200,0.06);}
+.badge.p{color:var(--purple);border-color:rgba(192,132,252,0.25);background:rgba(192,132,252,0.06);}
+.badge.b{color:var(--blue);border-color:rgba(96,165,250,0.25);background:rgba(96,165,250,0.06);}
+@keyframes up{to{opacity:1;transform:translateY(0);}from{opacity:0;transform:translateY(30px);}}
+
+/* DASHBOARD */
+.dashboard{padding:3rem 2rem;position:relative;z-index:1;}
+.dash-inner{max-width:950px;margin:0 auto;}
+.sec-tag{font-family:"Space Mono",monospace;font-size:0.7rem;color:var(--purple);letter-spacing:3px;margin-bottom:0.4rem;}
+.sec-title{font-family:"Cormorant Garamond",serif;font-size:2rem;font-weight:700;color:var(--white);margin-bottom:0.4rem;}
+.sec-line{width:45px;height:2px;background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:2px;margin-bottom:2rem;}
+
+/* KPI CARDS */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+.kpi{
+  background:var(--glass);border:1px solid var(--glass-b);
+  border-radius:14px;padding:1.4rem;
+  position:relative;overflow:hidden;
+  transition:all 0.3s;
+}
+.kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi:nth-child(1)::before{background:var(--teal);}
+.kpi:nth-child(2)::before{background:var(--purple);}
+.kpi:nth-child(3)::before{background:var(--gold);}
+.kpi:nth-child(4)::before{background:var(--blue);}
+.kpi:hover{transform:translateY(-4px);border-color:rgba(93,245,200,0.15);}
+.kpi-label{font-size:0.68rem;color:var(--muted);font-family:"Space Mono",monospace;letter-spacing:1px;margin-bottom:0.5rem;}
+.kpi-val{font-family:"Cormorant Garamond",serif;font-size:2.2rem;font-weight:700;line-height:1;}
+.kpi-change{font-size:0.72rem;margin-top:0.3rem;}
+.kpi-change.up{color:#4ade80;}
+.kpi-change.down{color:#f87171;}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:2rem;}
+.chart-card{background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;padding:1.5rem;}
+.chart-title{font-size:0.78rem;font-weight:600;color:var(--white);margin-bottom:1rem;font-family:"Space Mono",monospace;letter-spacing:0.5px;}
+.chart-canvas-wrap{position:relative;height:160px;}
+canvas.chart{position:static!important;width:100%!important;height:160px!important;}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:130px;padding-bottom:1.5rem;position:relative;}
+.bar-chart::after{content:"";position:absolute;bottom:1.5rem;left:0;right:0;height:1px;background:rgba(255,255,255,0.06);}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.bar{border-radius:3px 3px 0 0;width:100%;min-height:4px;transition:height 1.2s cubic-bezier(0.4,0,0.2,1);}
+.bar-lbl{font-size:0.55rem;color:var(--muted);font-family:"Space Mono",monospace;}
+
+/* PIE CHART */
+.pie-wrap{display:flex;gap:1.5rem;align-items:center;}
+.pie-svg{flex-shrink:0;}
+.pie-legend{display:flex;flex-direction:column;gap:0.6rem;}
+.legend-item{display:flex;align-items:center;gap:0.5rem;font-size:0.72rem;color:var(--muted);}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
+
+/* LINE CHART */
+.line-wrap{position:relative;height:130px;}
+.line-svg{width:100%;height:100%;}
+
+/* DONUT */
+.donut-wrap{display:flex;gap:1.5rem;align-items:center;}
+.donut-svg{flex-shrink:0;}
+.donut-info{display:flex;flex-direction:column;gap:0.5rem;}
+.donut-stat{font-size:0.75rem;color:var(--muted);}
+.donut-stat strong{color:var(--white);display:block;font-size:0.88rem;}
+
+/* TABLE */
+.table-card{background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;padding:1.5rem;margin-bottom:2rem;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:0.65rem;font-family:"Space Mono",monospace;color:var(--teal);letter-spacing:2px;padding:0.6rem 0.8rem;text-align:left;border-bottom:1px solid var(--glass-b);}
+td{font-size:0.8rem;color:var(--muted);padding:0.7rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.03);}
+td:first-child{color:var(--white);font-weight:500;}
+tr:hover td{background:rgba(93,245,200,0.02);}
+.badge-sm{padding:0.2rem 0.5rem;border-radius:4px;font-size:0.65rem;font-family:"Space Mono",monospace;}
+.badge-sm.g{background:rgba(74,222,128,0.1);color:#4ade80;}
+.badge-sm.r{background:rgba(248,113,113,0.1);color:#f87171;}
+.badge-sm.y{background:rgba(250,204,21,0.1);color:#facc15;}
+
+/* FEATURES */
+.feats{padding:3rem 2rem;position:relative;z-index:1;}
+.feats-inner{max-width:950px;margin:0 auto;}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;}
+.feat-card{background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;padding:1.4rem;transition:all 0.3s;}
+.feat-card:hover{transform:translateY(-5px);border-color:rgba(192,132,252,0.25);}
+.feat-ico{font-size:1.7rem;margin-bottom:0.7rem;}
+.feat-card h3{font-size:0.88rem;font-weight:600;color:var(--white);margin-bottom:0.3rem;}
+.feat-card p{font-size:0.78rem;color:var(--muted);line-height:1.6;}
+
+.proj-footer{padding:3rem 2rem;text-align:center;position:relative;z-index:1;border-top:1px solid var(--glass-b);}
+.proj-footer p{font-size:0.78rem;color:var(--muted);font-family:"Space Mono",monospace;}
+.proj-footer span{color:var(--purple);}
+.back-btn{display:inline-flex;align-items:center;gap:0.5rem;margin-top:1.5rem;padding:0.8rem 2rem;border:1.5px solid var(--purple);color:var(--purple);border-radius:6px;text-decoration:none;font-family:"Space Mono",monospace;font-size:0.8rem;transition:all 0.25s;}
+.back-btn:hover{background:rgba(192,132,252,0.08);transform:translateY(-2px);}
+.rv{opacity:0;transform:translateY(35px);transition:opacity 0.8s,transform 0.8s;}
+.rv.on{opacity:1;transform:translateY(0);}
+.d1{transition-delay:0.1s!important;}.d2{transition-delay:0.2s!important;}.d3{transition-delay:0.3s!important;}
+@media(max-width:640px){.charts-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<canvas id="bgc"></canvas>
+
+<nav>
+  <a href="jayasri-portfolio.html" class="nav-logo">JK.</a>
+  <a href="jayasri-portfolio.html" class="nav-back">&#8592; Back to Portfolio</a>
+</nav>
+
+<section class="hero">
+  <div>
+    <p class="hero-tag">PROJECT 02 / DATA ANALYTICS</p>
+    <h1><span>IBM Cognos Analytics</span><br/>Dashboard</h1>
+    <p class="hero-sub">An interactive business intelligence dashboard built using IBM Cognos Analytics to visualize business data, generate insights, and support data-driven decision-making.</p>
+    <div class="hero-badges">
+      <span class="badge p">IBM Cognos Analytics</span>
+      <span class="badge t">Data Visualization</span>
+      <span class="badge b">Business Intelligence</span>
+      <span class="badge t">Analytics</span>
+    </div>
+  </div>
+</section>
+
+<section class="dashboard">
+  <div class="dash-inner">
+    <div class="sec-tag rv">Live Preview</div>
+    <div class="sec-title rv">Dashboard <span style="background:linear-gradient(135deg,var(--purple),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Simulation</span></div>
+    <div class="sec-line rv"></div>
+
+    <!-- KPI -->
+    <div class="kpi-row rv">
+      <div class="kpi">
+        <div class="kpi-label">TOTAL REVENUE</div>
+        <div class="kpi-val" style="color:var(--teal);" id="kpi1">$0</div>
+        <div class="kpi-change up">&#8593; 12.4% vs last month</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">ACTIVE USERS</div>
+        <div class="kpi-val" style="color:var(--purple);" id="kpi2">0</div>
+        <div class="kpi-change up">&#8593; 8.1% growth</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">CONVERSION RATE</div>
+        <div class="kpi-val" style="color:var(--gold);" id="kpi3">0%</div>
+        <div class="kpi-change down">&#8595; 2.3% this week</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">SATISFACTION</div>
+        <div class="kpi-val" style="color:var(--blue);" id="kpi4">0</div>
+        <div class="kpi-change up">&#8593; 0.2 improvement</div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="charts-grid rv">
+      <!-- BAR CHART -->
+      <div class="chart-card">
+        <div class="chart-title">&#128200; MONTHLY REVENUE (2025)</div>
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+      <!-- PIE CHART -->
+      <div class="chart-card">
+        <div class="chart-title">&#129516; SALES BY CATEGORY</div>
+        <div class="pie-wrap">
+          <svg class="pie-svg" width="120" height="120" viewBox="0 0 120 120" id="pieSvg">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="20"/>
+          </svg>
+          <div class="pie-legend" id="pieLegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="charts-grid rv">
+      <!-- LINE CHART -->
+      <div class="chart-card">
+        <div class="chart-title">&#128202; USER GROWTH TREND</div>
+        <div class="line-wrap">
+          <svg class="line-svg" id="lineSvg" viewBox="0 0 400 130" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(93,245,200,0.3)"/>
+                <stop offset="100%" stop-color="rgba(93,245,200,0)"/>
+              </linearGradient>
+            </defs>
+            <path id="lineArea" fill="url(#lineGrad)" d=""/>
+            <path id="linePath" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <!-- DONUT -->
+      <div class="chart-card">
+        <div class="chart-title">&#127919; PERFORMANCE SCORE</div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="12"/>
+            <circle cx="60" cy="60" r="48" fill="none" stroke="var(--purple)" stroke-width="12"
+              stroke-dasharray="301.6" stroke-dashoffset="301.6"
+              stroke-linecap="round" transform="rotate(-90 60 60)" id="donutArc"/>
+            <text x="60" y="64" text-anchor="middle" fill="var(--white)" font-size="18" font-family="Cormorant Garamond,serif" font-weight="700">87%</text>
+          </svg>
+          <div class="donut-info">
+            <div class="donut-stat"><strong style="color:var(--teal);">Excellent</strong>Overall Score</div>
+            <div class="donut-stat"><strong>4.3/5.0</strong>User Rating</div>
+            <div class="donut-stat"><strong style="color:#4ade80;">+15%</strong>vs Last Quarter</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card rv">
+      <div class="chart-title">&#128196; TOP PERFORMING REGIONS</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>Revenue</th>
+              <th>Users</th>
+              <th>Growth</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>North America</td><td>$248,500</td><td>12,450</td><td>+18.2%</td><td><span class="badge-sm g">Excellent</span></td></tr>
+            <tr><td>Asia Pacific</td><td>$198,300</td><td>9,870</td><td>+24.5%</td><td><span class="badge-sm g">Excellent</span></td></tr>
+            <tr><td>Europe</td><td>$175,200</td><td>8,230</td><td>+11.3%</td><td><span class="badge-sm y">Good</span></td></tr>
+            <tr><td>Middle East</td><td>$98,400</td><td>4,120</td><td>-3.1%</td><td><span class="badge-sm r">Review</span></td></tr>
+            <tr><td>South America</td><td>$76,800</td><td>3,450</td><td>+7.8%</td><td><span class="badge-sm y">Good</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="feats">
+  <div class="feats-inner">
+    <div class="sec-tag rv">Features</div>
+    <div class="sec-title rv">Dashboard <span style="background:linear-gradient(135deg,var(--purple),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Capabilities</span></div>
+    <div class="sec-line rv"></div>
+    <div class="feat-grid">
+      <div class="feat-card rv"><div class="feat-ico">&#128202;</div><h3>Interactive Charts</h3><p>Dynamic bar, line, pie and donut charts with real-time data updates and drill-down capabilities.</p></div>
+      <div class="feat-card rv d1"><div class="feat-ico">&#128203;</div><h3>KPI Monitoring</h3><p>Real-time key performance indicators with trend analysis and period-over-period comparisons.</p></div>
+      <div class="feat-card rv d2"><div class="feat-ico">&#127757;</div><h3>Regional Analysis</h3><p>Geographic performance breakdown with revenue, user, and growth metrics by region.</p></div>
+      <div class="feat-card rv d3"><div class="feat-ico">&#128196;</div><h3>Automated Reports</h3><p>Scheduled report generation and distribution to stakeholders in multiple formats.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="proj-footer">
+  <p>Project by <span>Jayasri K</span> &mdash; B.Tech AI & Data Science</p>
+  <a href="jayasri-portfolio.html" class="back-btn">&#8592; Back to Portfolio</a>
+</div>
+
+<script>
+// BG Canvas
+const C=document.getElementById("bgc"),ctx=C.getContext("2d");
+let W,H;function resize(){W=C.width=innerWidth;H=C.height=innerHeight;}
+resize();window.addEventListener("resize",resize);
+const stars=Array.from({length:150},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.2+0.2,o:Math.random()*0.7+0.1,s:Math.random()*0.4+0.05,t:Math.random()*6.28}));
+function drawBg(){
+  ctx.clearRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,"#04080f");bg.addColorStop(1,"#060c1a");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W*.7,H*.3,0,W*.7,H*.3,400);
+  g.addColorStop(0,"rgba(192,132,252,0.06)");g.addColorStop(1,"rgba(192,132,252,0)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  stars.forEach(s=>{s.t+=s.s*.016;const op=s.o*(0.5+0.5*Math.sin(s.t));ctx.fillStyle=`rgba(210,225,255,${op})`;ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fill();});
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// Reveal
+const obs=new IntersectionObserver(en=>{
+  en.forEach(e=>{
+    if(!e.isIntersecting)return;
+    e.target.classList.add("on");
+    initCharts();
+    obs.unobserve(e.target);
+  });
+},{threshold:0.1});
+document.querySelectorAll(".rv").forEach(el=>obs.observe(el));
+
+// KPI counters
+function animCount(id,target,prefix,suffix,dec){
+  let cur=0;const iv=setInterval(()=>{
+    cur=Math.min(cur+target/60,target);
+    document.getElementById(id).textContent=prefix+(dec?cur.toFixed(1):Math.round(cur))+suffix;
+    if(cur>=target)clearInterval(iv);
+  },25);
+}
+
+// Charts init
+let chartsInited=false;
+function initCharts(){
+  if(chartsInited)return;chartsInited=true;
+  // KPIs
+  setTimeout(()=>{
+    animCount("kpi1",542000,"$","",false);
+    animCount("kpi2",24350,"","",false);
+    animCount("kpi3",3.8,"","%",true);
+    animCount("kpi4",4.3,"","",true);
+  },300);
+  // Bar chart
+  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const vals=[42,58,35,72,65,88,55,90,78,95,82,110];
+  const bc=document.getElementById("barChart");
+  const colors=["var(--teal)","var(--purple)","var(--gold)","var(--blue)"];
+  months.forEach((m,i)=>{
+    const col=document.createElement("div");col.className="bar-col";
+    const pct=vals[i]/110*100;
+    col.innerHTML=`<div class="bar" style="height:0;background:${colors[i%4]};opacity:0.8;"></div><div class="bar-lbl">${m}</div>`;
+    bc.appendChild(col);
+    setTimeout(()=>{col.querySelector(".bar").style.height=pct*1.2+"px";},i*60+500);
+  });
+  // Pie
+  const pieData=[
+    {label:"Electronics",val:35,color:"var(--teal)"},
+    {label:"Clothing",val:25,color:"var(--purple)"},
+    {label:"Food",val:20,color:"var(--gold)"},
+    {label:"Other",val:20,color:"var(--blue)"},
+  ];
+  const svg=document.getElementById("pieSvg");
+  const leg=document.getElementById("pieLegend");
+  let offset=0;
+  const circ=2*Math.PI*50;
+  pieData.forEach(d=>{
+    const dash=circ*d.val/100;
+    const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx","60");c.setAttribute("cy","60");c.setAttribute("r","50");
+    c.setAttribute("fill","none");c.setAttribute("stroke",d.color);c.setAttribute("stroke-width","20");
+    c.setAttribute("stroke-dasharray",`${dash} ${circ-dash}`);
+    c.setAttribute("stroke-dashoffset",(-offset).toString());
+    c.setAttribute("transform","rotate(-90 60 60)");
+    svg.appendChild(c);
+    offset+=dash;
+    leg.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${d.color}"></div>${d.label}: ${d.val}%</div>`;
+  });
+  // Line
+  const lineVals=[20,35,28,55,48,72,65,88,75,95,88,110];
+  const lsvg=document.getElementById("lineSvg");
+  const pts=lineVals.map((v,i)=>`${i*36},${130-v}`);
+  const pathD=`M${pts.join(" L")}`;
+  const areaD=`M0,130 L${pts.join(" L")} L${(lineVals.length-1)*36},130 Z`;
+  document.getElementById("linePath").setAttribute("d",pathD);
+  document.getElementById("lineArea").setAttribute("d",areaD);
+  // Donut
+  setTimeout(()=>{
+    const arc=document.getElementById("donutArc");
+    const target=301.6*(1-0.87);
+    arc.style.transition="stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)";
+    arc.style.strokeDashoffset=target;
+  },800);
+}
+</script>
+</body>
+</html>
